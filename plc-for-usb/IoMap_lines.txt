@@ -1,0 +1,15 @@
+I/O mapping for the ESP32 device "ModbusTcp_any" (version 2).
+Best done in the I/O Mapping editor (right-click the device > I/O Mapping),
+but these are the lines Automation Studio writes into IoMap.iom:
+
+Inputs (block 1, function code 4, read input registers, start 0, 6 channels):
+	::Main:BleHeartbeat AT %IW."ModbusTcp_any".BleHeartbeat;
+	::Main:BleEnable AT %IW."ModbusTcp_any".BleEnable;
+	::Main:BleAxis AT %IW."ModbusTcp_any".BleAxis;
+	::Main:BleDir AT %IW."ModbusTcp_any".BleDir;
+	::Main:BleCmd AT %IW."ModbusTcp_any".BleCmd;
+	::Main:BleCmdSeq AT %IW."ModbusTcp_any".BleCmdSeq;
+
+Outputs (block 2, function code 16, write multiple registers, start 0, 2 channels):
+	::Main:BleStateOut AT %QW."ModbusTcp_any".PlcState;
+	::Main:BleHbEcho AT %QW."ModbusTcp_any".PlcHbEcho;

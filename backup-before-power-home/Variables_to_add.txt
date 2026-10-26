@@ -1,0 +1,13 @@
+Add these lines to Logical/Source/Control/Main/Variables.var
+(as a new block at the end of the file, after the last END_VAR):
+
+VAR
+	BleHeartbeat : UINT; (*IR0 from ESP32: counts up every 100 ms*)
+	BleEnable : UINT; (*IR1: 1 = phone connected over BLE*)
+	BleAxis : UINT; (*IR2: 0 = none, 1..5 = axis*)
+	BleDir : UINT; (*IR3: 0 = stop, 1 = positive, 2 = negative*)
+	BleHeartbeatOld : UINT; (*Heartbeat value of the last cycle*)
+	BleWatchdog : TON; (*Stops the jog if the heartbeat freezes*)
+	BleLinkOk : BOOL; (*TRUE while the ESP32 heartbeat is alive*)
+	BleRemoteActive : BOOL; (*TRUE while the phone owns the jog*)
+END_VAR

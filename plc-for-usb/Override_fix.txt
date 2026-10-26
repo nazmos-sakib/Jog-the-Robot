@@ -1,0 +1,22 @@
+Logical/Source/Motion/InitRobot/Main.st, near the end of _CYCLIC.
+
+The sensor box is gone, so MTO1..4, USS2..6 and TOF1..5 are all 0.
+Then MinDis = 0, MinDis1 = 0, and this block sets Par.Override := 0,
+which is passed to fbMpRobotic5Arm.Override: the robot would move at 0 %.
+
+Comment the old block out with (* ... *) and set a fixed override instead:
+
+	(* Sensor box removed - speed reduction disabled
+	MinDis := MIN(USS2,USS3,USS4,USS5,USS6,TOF1,TOF2,TOF3,TOF4,TOF5);
+	MinDis1 := UINT_TO_REAL(MinDis);
+	MinDis1 := MinDis1/10;
+
+	IF MTO1=1 OR MTO2=1 OR MTO3=1 OR MTO4=1 THEN
+		Par.Override:=0;
+	ELSIF MinDis1<100 THEN
+		Par.Override := MinDis1;
+	ELSE
+		Par.Override:= 100;
+	END_IF
+	*)
+	Par.Override := 100;

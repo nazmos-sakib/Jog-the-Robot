@@ -1,0 +1,26 @@
+Add these lines to Logical/Source/Control/Main/Variables.var
+(as a new block at the end of the file, after the last END_VAR).
+
+If you already added the first version (8 variables), keep it and add only
+the 10 lines marked "new in version 2" inside that same VAR ... END_VAR block.
+
+VAR
+	BleHeartbeat : UINT; (*IR0 from ESP32: counts up every 100 ms*)
+	BleEnable : UINT; (*IR1: 1 = phone connected over BLE*)
+	BleAxis : UINT; (*IR2: 0 = none, 1..5 = axis*)
+	BleDir : UINT; (*IR3: 0 = stop, 1 = positive, 2 = negative*)
+	BleHeartbeatOld : UINT; (*Heartbeat value of the last cycle*)
+	BleWatchdog : TON; (*Stops the jog if the heartbeat freezes*)
+	BleLinkOk : BOOL; (*TRUE while the ESP32 heartbeat is alive*)
+	BleRemoteActive : BOOL; (*TRUE while the phone owns the jog*)
+	BleCmd : UINT; (*new in version 2 - IR4: 1 = power on, 2 = power off, 3 = home*)
+	BleCmdSeq : UINT; (*new in version 2 - IR5: +1 for every command from the app*)
+	BleCmdSeqOld : UINT; (*new in version 2 - last command number we acted on*)
+	BleSeqSynced : BOOL; (*new in version 2 - FALSE after a lost link*)
+	BleHomeRequest : BOOL; (*new in version 2 - holds Cmd.Home until homing starts*)
+	BleStateOut : UINT; (*new in version 2 - HR0 to ESP32: state machine number*)
+	BleHbEcho : UINT; (*new in version 2 - HR1 to ESP32: copy of BleHeartbeat*)
+	BleProgramRunning : BOOL; (*new in version 2 - TRUE while a program or MoveSetPos runs*)
+	BleJogArmed : BOOL; (*new in version 2 - FALSE until the jog button was released once*)
+	BleStopRequest : BOOL; (*new in version 2 - holds Cmd.Stop until the program has stopped*)
+END_VAR

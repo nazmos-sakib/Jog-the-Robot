@@ -1,0 +1,8 @@
+I/O mapping for the ESP32 device "ModbusTcp_esp".
+Best done in the I/O Mapping editor (double-click the device > I/O Mapping),
+but these are the lines Automation Studio writes into IoMap.iom:
+
+	::Main:BleHeartbeat AT %IW."ModbusTcp_esp".BleHeartbeat;
+	::Main:BleEnable AT %IW."ModbusTcp_esp".BleEnable;
+	::Main:BleAxis AT %IW."ModbusTcp_esp".BleAxis;
+	::Main:BleDir AT %IW."ModbusTcp_esp".BleDir;
