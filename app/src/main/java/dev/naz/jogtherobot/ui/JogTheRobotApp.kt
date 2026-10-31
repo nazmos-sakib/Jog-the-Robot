@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -39,15 +40,46 @@ import androidx.navigation.compose.rememberNavController
 import dev.naz.jogtherobot.bluetooth.BluetoothController
 import dev.naz.jogtherobot.bluetooth.BluetoothEvent
 import dev.naz.jogtherobot.bluetooth.ConnectionState
+import dev.naz.jogtherobot.domain.model.InferenceConfiguration
+import dev.naz.jogtherobot.ui.screens.GestureJogScreen
 import dev.naz.jogtherobot.ui.screens.HomeScreen
 import dev.naz.jogtherobot.ui.screens.JogScreen
 import dev.naz.jogtherobot.ui.screens.SavedDevicesScreen
+import dev.naz.jogtherobot.ui.viewmodel.CameraViewModel
+import dev.naz.jogtherobot.utils.DelegateOption
+import dev.naz.jogtherobot.utils.PrecisionOption
+import dev.naz.jogtherobot.utils.RuntimeOption
 import kotlinx.coroutines.launch
+
 
 object Routes {
     const val HOME = "home"
     const val JOG = "jog"
+    const val GESTURE_JOG = "gesture_jog"
     const val SAVED_DEVICES = "saved_devices"
+}
+
+object ONNXConfuguration{
+    val cnf1 = InferenceConfiguration(
+        runtime = RuntimeOption.ONNX,
+        delegate = DelegateOption.CPU,
+        precision = PrecisionOption.FP32
+    )
+    val cnf2 = InferenceConfiguration(
+        runtime = RuntimeOption.ONNX,
+        delegate = DelegateOption.CPU,
+        precision = PrecisionOption.INT8
+    )
+    val cnf3 = InferenceConfiguration(
+        runtime = RuntimeOption.ONNX,
+        delegate = DelegateOption.NNAPI,
+        precision = PrecisionOption.FP32
+    )
+    val cnf4 = InferenceConfiguration(
+        runtime = RuntimeOption.ONNX,
+        delegate = DelegateOption.NNAPI,
+        precision = PrecisionOption.INT8
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,7 +142,7 @@ fun JogTheRobotApp(controller: BluetoothController) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 28.dp, end = 28.dp, bottom = 12.dp)
                 )
-                HorizontalDivider()
+                HorizontalDivider(modifier = Modifier.padding(vertical = 7.dp))
 
                 DrawerItem("Home", Icons.Filled.Home, currentRoute == Routes.HOME) {
                     navController.navigateHome()
@@ -124,6 +156,16 @@ fun JogTheRobotApp(controller: BluetoothController) {
                     }
                     scope.launch { drawerState.close() }
                 }
+                DrawerItem("Gesture Jog", Icons.Filled.PlayArrow, currentRoute == Routes.GESTURE_JOG) {
+                        /*if (isConnected) {
+                            navController.navigateToJog()
+                        } else {
+                            showMessage("Connect to a Bluetooth device first")
+                        }*/
+                        navController.navigateToGestureJog()
+                        scope.launch { drawerState.close() }
+                }
+
                 DrawerItem(
                     "Show saved devices",
                     Icons.AutoMirrored.Filled.List,
@@ -211,6 +253,34 @@ fun JogTheRobotApp(controller: BluetoothController) {
                         }
                     }
                 }
+
+                composable(Routes.GESTURE_JOG) {
+                    val state = connectionState
+                    val cameraViewModel: CameraViewModel = hiltViewModel()
+                    if (true || state is ConnectionState.Connected) {
+                        LaunchedEffect(Unit) {
+                            cameraViewModel.receiveBluetoothController(controller)
+                            cameraViewModel.startCameraSession(ONNXConfuguration.cnf3)
+                        }
+                        GestureJogScreen(
+                            viewModel = cameraViewModel,
+                            onSend = { command -> controller.send(command) },
+                            incoming = controller.incoming,
+                            onDisconnect = {
+                                controller.disconnect()
+                                navController.navigateHome()
+                            }
+                        )
+                    } else {
+                        // Guard: the Jog screen is only reachable while connected.
+                        // Check the live value so a one-frame-stale UI state doesn't bounce us.
+                        LaunchedEffect(Unit) {
+                            if (controller.state.value !is ConnectionState.Connected) {
+                                navController.navigateHome()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -242,6 +312,14 @@ private fun NavHostController.navigateHome() {
 /** Opens Jog with Home underneath it, so Back goes Jog -> Home. */
 private fun NavHostController.navigateToJog() {
     navigate(Routes.JOG) {
+        popUpTo(Routes.HOME) { inclusive = false }
+        launchSingleTop = true
+    }
+}
+
+/** Opens Gesture Jog with Home underneath it, so Back goes Jog -> Home. */
+private fun NavHostController.navigateToGestureJog() {
+    navigate(Routes.GESTURE_JOG) {
         popUpTo(Routes.HOME) { inclusive = false }
         launchSingleTop = true
     }

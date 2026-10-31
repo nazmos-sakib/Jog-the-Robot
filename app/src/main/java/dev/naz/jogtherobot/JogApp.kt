@@ -1,6 +1,7 @@
 package dev.naz.jogtherobot
 
 import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
 import dev.naz.jogtherobot.bluetooth.BluetoothController
 
 /**
@@ -8,6 +9,8 @@ import dev.naz.jogtherobot.bluetooth.BluetoothController
  * Bluetooth connection (and its broadcast receiver) survives screen rotation
  * and navigation between screens.
  */
+
+@HiltAndroidApp
 class JogApp : Application() {
 
     lateinit var bluetoothController: BluetoothController
