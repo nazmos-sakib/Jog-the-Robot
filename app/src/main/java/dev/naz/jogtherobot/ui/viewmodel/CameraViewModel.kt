@@ -31,14 +31,17 @@ import dev.naz.jogtherobot.bluetooth.JogProtocol
 import dev.naz.jogtherobot.data.repository.ONNXPoseDetectionRepository
 import dev.naz.jogtherobot.ui.screens.RobotModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 /**
@@ -47,6 +50,13 @@ import javax.inject.Inject
  * The drawing is only an estimate, not the robot's measured position.
  */
 private const val DRAWING_DEG_PER_REPEAT = 1f
+
+/**
+ * The jog keeps running only while a frame showed the jog gesture within
+ * this time. Must be longer than one inference (check "Inference FPS":
+ * at 5 fps or more, 400 ms is fine).
+ */
+private const val GESTURE_TIMEOUT_MS = 400L
 
 @HiltViewModel
 class CameraViewModel @Inject constructor(
@@ -126,33 +136,44 @@ class CameraViewModel @Inject constructor(
         }
     }
 
-    // True while a jog button is held. The send loop below checks it.
-    val jogging = AtomicBoolean(false)
+    // The running jog loop. At most one at a time.
+    private var jogJob: Job? = null
+
+    // When a frame last showed TURN_LEFT/TURN_RIGHT. Set in processFrame().
+    @Volatile private var lastJogGestureAt = 0L
 
     fun startJog(direction: JogDirection) {
-        val a = selectedAxis ?: return
-        val axis = a.value ?: return
-        if (jogging.getAndSet(true)) return // already jogging (other button held)
+        val axis = _selectedAxis.value ?: return
         val command = JogProtocol.build(axis, direction)
         val delta = if (direction == JogDirection.RIGHT) DRAWING_DEG_PER_REPEAT
         else -DRAWING_DEG_PER_REPEAT
-        viewModelScope.launch {
-            // Keep-alive loop: re-send the command while the button is held.
-            // All writes happen one after another in this coroutine, so the
-            // stop command never collides with a jog command still in flight.
-            while (jogging.get()) {
-                sendCommand(command)
-                if (lastSendOk) angles = RobotModel.jog(angles, axis, delta)
-                // Wait REPEAT_MS, but leave early when the button is released.
-                val nextSend = System.currentTimeMillis() + JogProtocol.REPEAT_MS
-                while (jogging.get() && System.currentTimeMillis() < nextSend) delay(10)
+        val previous = jogJob
+        jogJob = viewModelScope.launch {
+            // Let the old loop finish and send its STOP before we start.
+            previous?.cancelAndJoin()
+            try {
+                // Keep-alive: re-send while recent frames still show the gesture.
+                while (isActive &&
+                    System.currentTimeMillis() - lastJogGestureAt < GESTURE_TIMEOUT_MS
+                ) {
+                    lastSendOk = blController?.send(command) ?: false
+                    lastCommand = command
+                    if (lastSendOk) angles = RobotModel.jog(angles, axis, delta)
+                    delay(JogProtocol.REPEAT_MS)
+                }
+            } finally {
+                // Runs on every exit: timeout, stopJog(), or the ViewModel closing.
+                withContext(NonCancellable) {
+                    blController?.send(JogProtocol.STOP)
+                    lastCommand = JogProtocol.STOP
+                }
             }
-            sendCommand(JogProtocol.STOP)
         }
     }
 
+    //any changes in command stop JOG
     fun stopJog() {
-        jogging.set(false) // the loop above sends STOP and ends
+        jogJob?.cancel()
     }
 
     var isNeutral = false
@@ -239,6 +260,11 @@ class CameraViewModel @Inject constructor(
                 val pose = results.firstOrNull()?.keyPoints?.toPose()
                 //Log.d(UiDebugTag, "processFrame: $pose")
                 val cmd = if (pose != null) gestureDetector.detect(pose) else RobotCommand.NO_PERSON
+
+                // Each frame that still shows the jog gesture keeps the jog alive.
+                if (cmd == RobotCommand.TURN_LEFT || cmd == RobotCommand.TURN_RIGHT) {
+                    lastJogGestureAt = System.currentTimeMillis()
+                }
 
                 Log.d(UiDebugTag, "viewmodel: processFrame: $results")
                 withContext(Dispatchers.Main) {
