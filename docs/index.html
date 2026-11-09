@@ -1,0 +1,271 @@
+---
+layout: default
+---
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Android · BLE · Modbus TCP · Pose estimation</p>
+      <h1>Jog a robot arm from your phone. Or just wave at it.</h1>
+      <p class="lead">Jog The Robot is a Kotlin / Jetpack Compose app that moves a 5-axis igus robolink-style arm. Hold a button to jog an axis, or stand in front of the camera and let an on-device YOLO pose model turn your arm positions into jog commands.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#video">Watch it move</a>
+        <a class="btn" href="{{ site.repo_url }}">View the code</a>
+      </div>
+    </div>
+    <div class="hero-phone">
+      <img src="screenshots/jog-axis-selected.png" alt="Jog screen with axis A2 selected" loading="eager">
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section id="about" class="section">
+  <div class="wrap">
+    <h2>What this project is</h2>
+    <p class="section-lead">A complete phone-to-robot control chain: the Android app, the ESP32 firmware that bridges Bluetooth to the PLC, and the PLC logic that drives the arm.</p>
+
+    <div class="cards">
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+        </div>
+        <h3>Jog</h3>
+        <p>Pick an axis (A1 to A5), then hold Left or Right. The command repeats every 100 ms while you hold and a stop is sent the moment you let go.</p>
+      </article>
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M4 9l8 2 8-2"/><path d="M12 11v5l-3 6"/><path d="M12 16l3 6"/></svg>
+        </div>
+        <h3>Gesture Jog</h3>
+        <p>The front camera feeds YOLO26n-pose (ONNX Runtime, CPU or NNAPI). Seventeen body keypoints become axis selection and jog direction, no touch needed.</p>
+      </article>
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <h3>Safe by default</h3>
+        <p>A 300 ms deadman on the ESP32, a heartbeat watchdog to the PLC, and jog buttons that stay disabled unless the PLC is online and ready.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how" class="section section-alt">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="section-lead">Every jog travels through four hops. Status flows back the other way, so the app always shows what the PLC is actually doing.</p>
+
+    <div class="flow" role="img" aria-label="Android app to ESP32-S3-ETH over BLE, ESP32 to B&R PLC over Modbus TCP, PLC to igus robot">
+      <div class="node">
+        <span class="node-title">Android app</span>
+        <span class="node-sub">Kotlin · Compose · Hilt</span>
+      </div>
+      <div class="link">
+        <span class="link-label">BLE · Nordic UART</span>
+        <span class="arrow">→</span>
+        <span class="link-back">← status lines</span>
+      </div>
+      <div class="node">
+        <span class="node-title">ESP32-S3-ETH</span>
+        <span class="node-sub">BLE server + Modbus server</span>
+      </div>
+      <div class="link">
+        <span class="link-label">Modbus TCP · Ethernet</span>
+        <span class="arrow">→</span>
+        <span class="link-back">← state + heartbeat</span>
+      </div>
+      <div class="node">
+        <span class="node-title">B&amp;R X20CP0484</span>
+        <span class="node-sub">PLC state machine</span>
+      </div>
+      <div class="link">
+        <span class="link-label">Drives</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="node">
+        <span class="node-title">igus robot</span>
+        <span class="node-sub">5 axes</span>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <span class="step-n">1</span>
+        <div>
+          <h3>Connect</h3>
+          <p>The app scans for 15 s and flags devices advertising the Nordic UART service. Pick <code>JogTheRobot</code>; it is saved for next time. On connect the app requests an MTU of 185 and subscribes to notifications.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-n">2</span>
+        <div>
+          <h3>Power on and home</h3>
+          <p>The status card shows the PLC state (Power off, Powered not homed, Ready…). Flip the Power switch (<code>P1</code>), then tap Home (<code>H</code>). Jogging unlocks once the robot is Ready.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-n">3</span>
+        <div>
+          <h3>Jog</h3>
+          <p>Tap a joint on the arm drawing or an axis button, then hold Left or Right. The app sends <code>A2:R</code> every 100 ms, the ESP32 puts axis and direction into Modbus input registers, and the PLC moves the arm.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-n">4</span>
+        <div>
+          <h3>Release to stop</h3>
+          <p>Letting go sends <code>S</code>. If the phone goes quiet for 300 ms or disconnects, the ESP32 stops the jog on its own.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sub-h">Gesture Jog sequence</h3>
+    <p>Each camera frame is letterboxed to 640×640 and run through the pose model. Gestures follow a fixed order: <strong>neutral</strong>, then an <strong>axis pose</strong>, then a <strong>turn pose</strong> to jog.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Pose</th><th>Command</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td>Both arms hanging straight down</td><td><code>NEUTRAL</code></td><td>Arms the selector and clears the axis</td></tr>
+          <tr><td>Arms crossed above the head (X)</td><td><code>STOP</code></td><td>Select <strong>A1</strong></td></tr>
+          <tr><td>T-pose, both arms horizontal</td><td><code>START</code></td><td>Select <strong>A2</strong></td></tr>
+          <tr><td>Both hands up in a V above the head</td><td><code>FORWARD</code></td><td>Select <strong>A3</strong></td></tr>
+          <tr><td>Both arms down at ~45°, hands apart</td><td><code>BACKWARD</code></td><td>Select <strong>A4</strong></td></tr>
+          <tr><td>Left arm horizontal, right arm down</td><td><code>TURN_LEFT</code></td><td>Jog selected axis <strong>Left</strong></td></tr>
+          <tr><td>Right arm horizontal, left arm down</td><td><code>TURN_RIGHT</code></td><td>Jog selected axis <strong>Right</strong></td></tr>
+          <tr><td>No person in frame</td><td><code>NO_PERSON</code></td><td>Clear the axis and stop</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">While a turn pose is held the jog repeats every 100 ms. If no frame shows it for 400 ms, the loop ends and sends <code>S</code>, so inference needs to stay above about 3 FPS. On a Nothing Phone (A015) with NNAPI FP32 it runs at about 6 FPS.</p>
+  </div>
+</section>
+
+<!-- ============ APP DEMO ============ -->
+<section id="demo" class="section">
+  <div class="wrap">
+    <h2>The app</h2>
+    <p class="section-lead">Screens from a Nothing Phone (A015), connected to the ESP32 with the PLC offline, so the status card reads "PLC not connected to the ESP32" and the jog buttons stay disabled.</p>
+
+    <div class="gallery">
+      <figure class="shot">
+        <img src="screenshots/home.png" alt="Home screen showing connection state" loading="lazy">
+        <figcaption><strong>Home</strong> Connection state and a shortcut to connect to a saved or nearby device.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="screenshots/jog.png" alt="Jog screen" loading="lazy">
+        <figcaption><strong>Jog</strong> Status card with Power, Stop and Home, the arm drawing, axis buttons and hold-to-jog.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="screenshots/jog-axis-selected.png" alt="Jog screen with axis A2 selected" loading="lazy">
+        <figcaption><strong>Axis selected</strong> Tap a joint to select it. The joint lights up with its current angle.</figcaption>
+      </figure>
+      {% if site.show_gesture_screenshot %}
+      <figure class="shot">
+        <img src="screenshots/gesture-jog.png" alt="Gesture Jog screen with skeleton overlay" loading="lazy">
+        <figcaption><strong>Gesture Jog</strong> Camera preview with skeleton overlay, detected command, robot status and FPS counters.</figcaption>
+      </figure>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- ============ VIDEO ============ -->
+<section id="video" class="section section-alt">
+  <div class="wrap">
+    <h2>See the robot move</h2>
+    <p class="section-lead">{{ site.video.caption }}</p>
+
+    <div class="video-frame">
+      {% if site.video.youtube_embed != "" %}
+        <iframe src="{{ site.video.youtube_embed }}" title="Jog The Robot demo video" frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      {% elsif site.video.file != "" %}
+        <video controls preload="metadata" playsinline>
+          <source src="{{ site.video.file }}" type="video/mp4">
+          Your browser cannot play this video.
+        </video>
+      {% else %}
+        <div class="video-placeholder">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>
+          <p>Robot video coming soon</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROTOCOL ============ -->
+<section id="protocol" class="section">
+  <div class="wrap">
+    <h2>Under the hood</h2>
+    <p class="section-lead">Plain ASCII lines over BLE, ending in <code>\n</code>. Both sides buffer until a newline because BLE packets can split or join lines.</p>
+
+    <div class="two-col">
+      <div>
+        <h3>Phone → ESP32</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Command</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>A1:L</code> … <code>A5:L</code></td><td>Jog axis negative, every 100 ms while held</td></tr>
+              <tr><td><code>A1:R</code> … <code>A5:R</code></td><td>Jog axis positive, every 100 ms while held</td></tr>
+              <tr><td><code>S</code></td><td>Stop jogging</td></tr>
+              <tr><td><code>P1</code> / <code>P0</code></td><td>Robot power on / off</td></tr>
+              <tr><td><code>H</code></td><td>Home the robot</td></tr>
+              <tr><td><code>X</code></td><td>Stop a running program, move or homing</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3>ESP32 → phone</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Line</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>ST:20,1</code></td><td>Robot state code and PLC online flag, sent every second and on change</td></tr>
+              <tr><td><code>OK A2:R</code></td><td>Acknowledges a new jog direction</td></tr>
+              <tr><td><code>OK S</code></td><td>Acknowledges a stop</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>BLE service</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Role</th><th>UUID</th></tr></thead>
+            <tbody>
+              <tr><td>Service</td><td><code class="uuid">6E400001-B5A3-F393-E0A9-E50E24DCCA9E</code></td></tr>
+              <tr><td>RX (write)</td><td><code class="uuid">6E400002-B5A3-F393-E0A9-E50E24DCCA9E</code></td></tr>
+              <tr><td>TX (notify)</td><td><code class="uuid">6E400003-B5A3-F393-E0A9-E50E24DCCA9E</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sub-h">Robot states</h3>
+    <div class="states">
+      <span class="state"><b>0</b> Power off</span>
+      <span class="state"><b>5</b> Powering on</span>
+      <span class="state"><b>9</b> Not homed</span>
+      <span class="state"><b>10</b> Homing</span>
+      <span class="state state-ok"><b>20</b> Ready</span>
+      <span class="state"><b>30</b> Program</span>
+      <span class="state state-ok"><b>40</b> Jogging</span>
+      <span class="state"><b>50</b> Moving</span>
+      <span class="state state-err"><b>99</b> Error</span>
+    </div>
+    <p class="note">Jogging is allowed only in Ready and Jogging, and only while the PLC is online.</p>
+
+    <h3 class="sub-h">Built with</h3>
+    <ul class="tags">
+      <li>Kotlin 2.2</li><li>Jetpack Compose + Material 3</li><li>Hilt</li><li>CameraX</li>
+      <li>ONNX Runtime 1.18</li><li>YOLO26n-pose</li><li>Android BLE GATT</li>
+      <li>ESP32-S3 + W5500</li><li>modbus-esp8266</li><li>B&amp;R Structured Text</li>
+    </ul>
+  </div>
+</section>

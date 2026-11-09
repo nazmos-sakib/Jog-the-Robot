@@ -1,0 +1,31 @@
+# Jekyll config for the JogTheRobot project site.
+# GitHub Pages builds this folder when Pages is set to "Deploy from a branch", folder /docs.
+
+title: Jog The Robot
+description: >-
+  An Android app that jogs a 5-axis robot arm from a phone, by touch or by body gestures,
+  through an ESP32-S3 BLE-to-Modbus bridge.
+author: Naz
+
+# Link shown in the header and footer. Change it to your repository URL.
+repo_url: https://github.com/YOUR-USERNAME/JogTheRobot
+
+# ----- Robot video -----
+# Paste ONE of these and leave the other empty.
+#   youtube_embed: the embed URL, e.g. https://www.youtube.com/embed/dQw4w9WgXcQ
+#   file:          a video file committed under docs/, e.g. assets/video/robot-demo.mp4
+# While both are empty, the page shows a "video coming soon" placeholder.
+video:
+  youtube_embed: ""
+  file: ""
+  caption: The igus arm jogged from the phone, first with the Jog buttons, then with Gesture Jog.
+
+# The Gesture Jog screenshot shows the room it was taken in.
+# Set to true to show it on the page (docs/screenshots/gesture-jog.png must exist).
+show_gesture_screenshot: false
+
+markdown: kramdown
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
