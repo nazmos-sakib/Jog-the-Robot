@@ -1,5 +1,7 @@
 # Jog The Robot
 
+<img src="docs/screenshots/jog-screen-demo-1.gif" alt="Jog screen: selecting a joint and jogging it" width="220" align="right">
+
 An Android app (Kotlin, Jetpack Compose) that jogs a 5-axis igus robolink-style robot arm from a phone, plus the ESP32 firmware (`JogReceiver`) that bridges the phone to the robot's PLC.
 
 You can move the robot two ways:
@@ -12,20 +14,43 @@ You can move the robot two ways:
               ◄── status lines ────               ◄── state + heartbeat echo ──
 ```
 
-| Home | Jog | Jog, axis selected | Gesture Jog |
-|---|---|---|---|
-| ![Home screen](docs/screenshots/home.png) | ![Jog screen](docs/screenshots/jog.png) | ![Jog screen with A2 selected](docs/screenshots/jog-axis-selected.png) | ![Gesture Jog screen](docs/screenshots/gesture-jog.png) |
+**Project site:** <https://nazmos-sakib.github.io/Jog-the-Robot/>
 
-The screenshots were taken on a Nothing Phone (A015) while connected to the ESP32 with the PLC offline, so the status card reads "PLC not connected to the ESP32" and the jog buttons stay disabled.
+## Screens
+
+| Home | Navigation drawer | Jog, PLC offline | Axis selected |
+|---|---|---|---|
+| <img src="docs/screenshots/home.png" alt="Home screen" width="180"> | <img src="docs/screenshots/drawer.png" alt="Navigation drawer" width="180"> | <img src="docs/screenshots/jog.png" alt="Jog screen with the PLC offline" width="180"> | <img src="docs/screenshots/jog-axis-selected.png" alt="Jog screen with A2 selected" width="180"> |
+| Connection state and a shortcut to connect | Home, Jog, Gesture Jog, saved devices, Disconnect | Buttons stay disabled while the PLC is offline | Tap a joint to select it and see its angle |
+
+| Homing | Ready | Jogging | Gesture Jog |
+|---|---|---|---|
+| <img src="docs/screenshots/app-homing.png" alt="Jog screen while homing" width="180"> | <img src="docs/screenshots/app-ready.png" alt="Jog screen, robot Ready" width="180"> | <img src="docs/screenshots/app-jogging.png" alt="Jog screen while jogging A1" width="180"> | <img src="docs/screenshots/ss-turn-left.png" alt="Gesture Jog screen detecting TURN_LEFT" width="180"> |
+| After Power on, Home drives every axis to its reference | Powered and homed: jogging unlocks | Holding Right on A1 sends `A1:R` every 100 ms | Pose skeleton, detected command and FPS. More under [Gesture Jog](#gesture-jog) |
+
+All screens are from a Nothing Phone (A015). Home, drawer, Jog and Axis selected were taken with the PLC offline; Homing, Ready and Jogging come from a live session with the robot.
+
+## Video
+
+<a href="docs/screenshots/jogScreen-side-by-side-video-demo.mp4"><img src="docs/screenshots/jog-screen-demo-2.gif" alt="Jog screen preview, click to open the side-by-side video" width="200"></a>
+
+- **[Jog, side by side (MP4, 23 s, 3 MB)](docs/screenshots/jogScreen-side-by-side-video-demo.mp4)**: the Jog screen and the igus arm next to each other, so you can see each tap on the phone move the real robot. The GIF above is a preview of the Jog screen.
+- **[Gesture Jog, side by side (MP4, 1 min 43 s, 18 MB)](docs/screenshots/gesture-jog-demo-5.mp4)**: the Gesture Jog screen with pose detection next to the robot, from selecting an axis with a pose to jogging it with one arm out.
+
+GitHub cannot play these inline in a README. Click a link to open the file, or watch them on the [project site](https://nazmos-sakib.github.io/Jog-the-Robot/#video).
 
 ---
 
 ## Contents
 
+- [Screens](#screens)
+- [Video](#video)
 - [Repository layout](#repository-layout)
 - [App architecture](#app-architecture)
 - [Jog screen](#jog-screen)
 - [Gesture Jog](#gesture-jog)
+- [Hardware](#hardware)
+- [Demos](#demos)
 - [Bluetooth protocol](#bluetooth-protocol)
 - [ESP32 ↔ PLC (Modbus TCP)](#esp32--plc-modbus-tcp)
 - [Safety behaviour](#safety-behaviour)
@@ -42,7 +67,8 @@ The screenshots were taken on a Nothing Phone (A015) while connected to the ESP3
 | `esp32/JogReceiver/JogReceiver.ino` | ESP32-S3-ETH firmware: BLE server + Modbus TCP server |
 | `plc-for-usb/` | PLC-side Structured Text (`Main.st`, `RemoteJog.st`) and I/O mapping notes for the B&R project |
 | `backup-*/` | Snapshots of earlier versions of a few files, kept for reference. Not part of the build. |
-| `docs/screenshots/` | Images used in this README |
+| `docs/` | GitHub Pages site (Jekyll): `index.html`, `_layouts/`, `assets/` |
+| `docs/screenshots/` | Screenshots, photos, GIFs and videos used in this README and on the site |
 
 ## App architecture
 
@@ -134,6 +160,11 @@ Jogging is allowed only when the PLC is online and the state is `IDLE` or `JOGGI
 
 The sequence is: NEUTRAL, then an axis pose, then TURN_LEFT or TURN_RIGHT. A5 is not reachable by gesture yet.
 
+| `TURN_LEFT` | `TURN_RIGHT` | `STOP` (arms crossed) |
+|---|---|---|
+| <img src="docs/screenshots/ss-turn-left.png" alt="Gesture Jog detecting TURN_LEFT" width="220"> | <img src="docs/screenshots/ss-turn-right.png" alt="Gesture Jog detecting TURN_RIGHT" width="220"> | <img src="docs/screenshots/ss-stop.png" alt="Gesture Jog detecting STOP" width="220"> |
+| Jogs the selected axis **Left** | Jogs the selected axis **Right** | Selects **A1** |
+
 While the turn gesture keeps being detected, `CameraViewModel.startJog()` re-sends the jog command every 100 ms. Any other gesture cancels the jog job, and its `finally` block always sends `S`. If no frame shows the turn gesture for 400 ms (`GESTURE_TIMEOUT_MS`), the loop ends by itself, so the inference rate must stay above about 3 FPS.
 
 ### Inference configurations
@@ -153,6 +184,29 @@ While the turn gesture keeps being detected, `CameraViewModel.startJog()` re-sen
 To switch preset, change the argument of `cameraViewModel.startCameraSession(...)` in the `GESTURE_JOG` route. On the A015 with `cnf3`, the screen shows about 6 inference FPS.
 
 `RuntimeOption` in `utils/Enums.kt` also lists TFLite, NCNN and PyTorch Mobile with their supported delegates and precisions. Only the ONNX path is wired up in this build.
+
+## Hardware
+
+| B&R X20 PLC | X20CP0484 CPU | ESP32-S3-ETH bridge |
+|---|---|---|
+| <img src="docs/screenshots/x20.jpg" alt="B&R X20 PLC rack with I/O modules" width="260"> | <img src="docs/screenshots/x20-cp-0484-1.jpg" alt="X20CP0484 CPU module close-up" width="200"> | <img src="docs/screenshots/esp32-connected-via-ethernet.jpg" alt="ESP32-S3-ETH connected by Ethernet" width="200"> |
+| The X20 rack with its I/O modules, wired into the robot cabinet | The CPU that runs the jog state machine and polls the ESP32 | The BLE-to-Modbus bridge on the PLC network |
+
+The igus 5-axis arm from four angles:
+
+| | | | |
+|---|---|---|---|
+| <img src="docs/screenshots/5x-robotic-arm-1.jpg" alt="Robot arm, side view" width="200"> | <img src="docs/screenshots/5x-robotic-arm-2.jpg" alt="Robot arm, angle 2" width="150"> | <img src="docs/screenshots/5x-robotic-arm-3.jpg" alt="Robot arm, angle 3" width="150"> | <img src="docs/screenshots/5x-robotic-arm-4.jpg" alt="Robot arm, angle 4" width="150"> |
+| Side view | From the left | Elbow and wrist folded | From the front |
+
+## Demos
+
+| Gesture Jog in front of the robot | Jog screen recording |
+|---|---|
+| [▶ gerster-jog-demo-2.mov](docs/screenshots/gerster-jog-demo-2.mov) (10 s) | [▶ jog-screen-video.mp4](docs/screenshots/jog-screen-video.mp4) (24 s) |
+| The operator holds arm poses in front of the phone and the arm follows | The Jog screen recorded on the phone while driving the arm |
+
+The [project site](https://nazmos-sakib.github.io/Jog-the-Robot/#demos) plays these videos inline.
 
 ## Bluetooth protocol
 

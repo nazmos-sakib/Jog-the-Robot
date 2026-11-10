@@ -11,11 +11,12 @@ layout: default
       <p class="lead">Jog The Robot is a Kotlin / Jetpack Compose app that moves a 5-axis igus robolink-style arm. Hold a button to jog an axis, or stand in front of the camera and let an on-device YOLO pose model turn your arm positions into jog commands.</p>
       <div class="cta">
         <a class="btn btn-primary" href="#video">Watch it move</a>
+        <a class="btn" href="#hardware">See the hardware</a>
         <a class="btn" href="{{ site.repo_url }}">View the code</a>
       </div>
     </div>
     <div class="hero-phone">
-      <img src="screenshots/jog-axis-selected.png" alt="Jog screen with axis A2 selected" loading="eager">
+      <img src="screenshots/jog-screen-demo-1.gif" alt="Animated Jog screen: selecting a joint and jogging it with Left and Right" width="720" height="1602" loading="eager">
     </div>
   </div>
 </section>
@@ -122,7 +123,7 @@ layout: default
       </div>
     </div>
 
-    <h3 class="sub-h">Gesture Jog sequence</h3>
+    <h3 class="sub-h" id="gesture">Gesture Jog sequence</h3>
     <p>Each camera frame is letterboxed to 640×640 and run through the pose model. Gestures follow a fixed order: <strong>neutral</strong>, then an <strong>axis pose</strong>, then a <strong>turn pose</strong> to jog.</p>
     <div class="table-wrap">
       <table>
@@ -140,6 +141,21 @@ layout: default
       </table>
     </div>
     <p class="note">While a turn pose is held the jog repeats every 100 ms. If no frame shows it for 400 ms, the loop ends and sends <code>S</code>, so inference needs to stay above about 3 FPS. On a Nothing Phone (A015) with NNAPI FP32 it runs at about 6 FPS.</p>
+
+    <div class="gallery gesture-gallery">
+      <figure class="shot">
+        <img src="screenshots/ss-turn-left.png" alt="Gesture Jog screen detecting TURN_LEFT, robot state Jogging" width="1080" height="2400" loading="lazy">
+        <figcaption><strong><code>TURN_LEFT</code></strong> Left arm out, right arm down: jogs the selected axis Left.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="screenshots/ss-turn-right.png" alt="Gesture Jog screen detecting TURN_RIGHT, robot state Jogging" width="1080" height="2400" loading="lazy">
+        <figcaption><strong><code>TURN_RIGHT</code></strong> Right arm out, left arm down: jogs the selected axis Right.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="screenshots/ss-stop.png" alt="Gesture Jog screen detecting STOP with arms crossed above the head" width="1080" height="2400" loading="lazy">
+        <figcaption><strong><code>STOP</code> (arms crossed)</strong> Arms crossed above the head: selects axis A1.</figcaption>
+      </figure>
+    </div>
   </div>
 </section>
 
@@ -147,27 +163,41 @@ layout: default
 <section id="demo" class="section">
   <div class="wrap">
     <h2>The app</h2>
-    <p class="section-lead">Screens from a Nothing Phone (A015), connected to the ESP32 with the PLC offline, so the status card reads "PLC not connected to the ESP32" and the jog buttons stay disabled.</p>
+    <p class="section-lead">A tour of the app on a Nothing Phone (A015), from connecting to jogging. The Jog and Axis selected screens were taken with the PLC offline; Homing, Ready and Jogging come from a live session with the robot.</p>
 
     <div class="gallery">
       <figure class="shot">
-        <img src="screenshots/home.png" alt="Home screen showing connection state" loading="lazy">
+        <img src="screenshots/home.png" alt="Home screen showing connection state" width="1080" height="2400" loading="lazy">
         <figcaption><strong>Home</strong> Connection state and a shortcut to connect to a saved or nearby device.</figcaption>
       </figure>
       <figure class="shot">
-        <img src="screenshots/jog.png" alt="Jog screen" loading="lazy">
-        <figcaption><strong>Jog</strong> Status card with Power, Stop and Home, the arm drawing, axis buttons and hold-to-jog.</figcaption>
+        <img src="screenshots/drawer.png" alt="Navigation drawer with Home, Jog, Gesture Jog, saved devices and Disconnect" width="1080" height="2400" loading="lazy">
+        <figcaption><strong>Navigation drawer</strong> Home, Jog, Gesture Jog, saved devices and Disconnect.</figcaption>
       </figure>
       <figure class="shot">
-        <img src="screenshots/jog-axis-selected.png" alt="Jog screen with axis A2 selected" loading="lazy">
+        <img src="screenshots/jog.png" alt="Jog screen with the PLC offline" width="1080" height="2400" loading="lazy">
+        <figcaption><strong>Jog, PLC offline</strong> Status card with Power, Stop and Home, the arm drawing, axis buttons and hold-to-jog. Buttons stay disabled while the PLC is offline.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="screenshots/jog-axis-selected.png" alt="Jog screen with axis A2 selected" width="1080" height="2400" loading="lazy">
         <figcaption><strong>Axis selected</strong> Tap a joint to select it. The joint lights up with its current angle.</figcaption>
       </figure>
-      {% if site.show_gesture_screenshot %}
       <figure class="shot">
-        <img src="screenshots/gesture-jog.png" alt="Gesture Jog screen with skeleton overlay" loading="lazy">
-        <figcaption><strong>Gesture Jog</strong> Camera preview with skeleton overlay, detected command, robot status and FPS counters.</figcaption>
+        <img src="screenshots/app-homing.png" alt="Jog screen while the robot is homing" width="720" height="1602" loading="lazy">
+        <figcaption><strong>Homing</strong> After Power on, Home (H) drives every axis to its reference. Stop is active while homing.</figcaption>
       </figure>
-      {% endif %}
+      <figure class="shot">
+        <img src="screenshots/app-ready.png" alt="Jog screen with the robot powered and Ready" width="720" height="1602" loading="lazy">
+        <figcaption><strong>Ready</strong> Powered and homed. Jogging unlocks.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="screenshots/app-jogging.png" alt="Jog screen while jogging axis A1" width="720" height="1602" loading="lazy">
+        <figcaption><strong>Jogging</strong> Holding Right on A1 (Base). The app sends A1:R every 100 ms.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="screenshots/ss-turn-left.png" alt="Gesture Jog screen with pose skeleton, detecting TURN_LEFT" width="1080" height="2400" loading="lazy">
+        <figcaption><strong>Gesture Jog</strong> Camera preview with the pose skeleton, detected command, robot state and FPS counters. More gestures under <a href="#gesture">How it works</a>.</figcaption>
+      </figure>
     </div>
   </div>
 </section>
@@ -179,21 +209,88 @@ layout: default
     <p class="section-lead">{{ site.video.caption }}</p>
 
     <div class="video-frame">
-      {% if site.video.youtube_embed != "" %}
-        <iframe src="{{ site.video.youtube_embed }}" title="Jog The Robot demo video" frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-      {% elsif site.video.file != "" %}
-        <video controls preload="metadata" playsinline>
-          <source src="{{ site.video.file }}" type="video/mp4">
-          Your browser cannot play this video.
+      <video controls playsinline preload="metadata" width="1944" height="1920">
+        <source src="screenshots/jogScreen-side-by-side-video-demo.mp4#t=0.1" type="video/mp4">
+        Your browser cannot play this video. <a href="screenshots/jogScreen-side-by-side-video-demo.mp4">Download it</a> instead.
+      </video>
+    </div>
+    <p class="video-caption"><strong>Jog</strong> The Jog screen and the arm side by side.</p>
+
+    <div class="video-frame">
+      <video controls playsinline preload="metadata" width="1944" height="1920">
+        <source src="screenshots/gesture-jog-demo-5.mp4#t=0.1" type="video/mp4">
+        Your browser cannot play this video. <a href="screenshots/gesture-jog-demo-5.mp4">Download it</a> instead.
+      </video>
+    </div>
+    <p class="video-caption"><strong>Gesture Jog</strong> The phone reads body poses from the front camera (left) and the arm moves to match (right): select an axis with a pose, then jog it Left or Right with one arm out. 1 min 43 s.</p>
+  </div>
+</section>
+
+<!-- ============ HARDWARE ============ -->
+<section id="hardware" class="section">
+  <div class="wrap">
+    <h2>The hardware</h2>
+    <p class="section-lead">A B&amp;R X20 PLC drives a 5-axis igus arm. The ESP32-S3-ETH sits between the phone and the PLC, talking BLE on one side and Modbus TCP over Ethernet on the other. Tap a photo to open it full size.</p>
+
+    <h3>PLC and bridge</h3>
+    <div class="photo-grid">
+      <figure class="photo">
+        <a href="screenshots/x20.jpg"><img src="screenshots/x20.jpg" alt="B&amp;R X20 PLC rack with I/O modules and wiring" width="4032" height="3024" loading="lazy"></a>
+        <figcaption><strong>B&amp;R X20 PLC</strong> The X20 rack with its I/O modules, wired into the robot cabinet.</figcaption>
+      </figure>
+      <figure class="photo">
+        <a href="screenshots/x20-cp-0484-1.jpg"><img src="screenshots/x20-cp-0484-1.jpg" alt="Close-up of the X20CP0484 CPU module" width="3024" height="4032" loading="lazy"></a>
+        <figcaption><strong>X20CP0484 CPU</strong> Close-up of the CPU that runs the jog state machine and polls the ESP32.</figcaption>
+      </figure>
+      <figure class="photo">
+        <a href="screenshots/esp32-connected-via-ethernet.jpg"><img src="screenshots/esp32-connected-via-ethernet.jpg" alt="ESP32-S3-ETH board connected with an Ethernet cable" width="3024" height="4032" loading="lazy"></a>
+        <figcaption><strong>ESP32-S3-ETH</strong> The BLE-to-Modbus bridge, connected to the PLC network by Ethernet.</figcaption>
+      </figure>
+    </div>
+
+    <h3 class="sub-h">The igus 5-axis arm</h3>
+    <div class="photo-grid">
+      <figure class="photo">
+        <a href="screenshots/5x-robotic-arm-1.jpg"><img src="screenshots/5x-robotic-arm-1.jpg" alt="igus 5-axis robot arm, side view" width="4032" height="3024" loading="lazy"></a>
+        <figcaption><strong>Side view</strong> The arm on its bench.</figcaption>
+      </figure>
+      <figure class="photo">
+        <a href="screenshots/5x-robotic-arm-2.jpg"><img src="screenshots/5x-robotic-arm-2.jpg" alt="igus 5-axis robot arm from the left" width="3024" height="4032" loading="lazy"></a>
+        <figcaption><strong>Angle 2</strong> From the left, base and shoulder in view.</figcaption>
+      </figure>
+      <figure class="photo">
+        <a href="screenshots/5x-robotic-arm-3.jpg"><img src="screenshots/5x-robotic-arm-3.jpg" alt="igus 5-axis robot arm, another angle from the left" width="3024" height="4032" loading="lazy"></a>
+        <figcaption><strong>Angle 3</strong> Elbow and wrist folded toward the bench.</figcaption>
+      </figure>
+      <figure class="photo">
+        <a href="screenshots/5x-robotic-arm-4.jpg"><img src="screenshots/5x-robotic-arm-4.jpg" alt="igus 5-axis robot arm from the front" width="3024" height="4032" loading="lazy"></a>
+        <figcaption><strong>Angle 4</strong> From the front, facing the windows.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEMOS ============ -->
+<section id="demos" class="section section-alt">
+  <div class="wrap">
+    <h2>More demos</h2>
+    <p class="section-lead">Short clips of both control modes. Videos start muted; use the player controls to unmute.</p>
+
+    <div class="demo-grid">
+      <figure class="demo">
+        <video controls muted playsinline preload="metadata" width="360" height="640">
+          <source src="screenshots/gerster-jog-demo-2.mov#t=0.1">
+          Your browser cannot play this video. <a href="screenshots/gerster-jog-demo-2.mov">Download it</a> instead.
         </video>
-      {% else %}
-        <div class="video-placeholder">
-          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>
-          <p>Robot video coming soon</p>
-        </div>
-      {% endif %}
+        <figcaption><strong>Gesture Jog in front of the robot</strong> The operator holds arm poses in front of the phone, and the arm jogs to follow.</figcaption>
+      </figure>
+      <figure class="demo">
+        <video controls muted playsinline preload="metadata" width="720" height="1602">
+          <source src="screenshots/jog-screen-video.mp4#t=0.1" type="video/mp4">
+          Your browser cannot play this video. <a href="screenshots/jog-screen-video.mp4">Download it</a> instead.
+        </video>
+        <figcaption><strong>Jog screen recording</strong> A full screen recording of the Jog screen while driving the arm.</figcaption>
+      </figure>
     </div>
   </div>
 </section>

@@ -40,7 +40,7 @@ body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
-img { max-width: 100%; display: block; }
+img, video { max-width: 100%; height: auto; display: block; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 code {
@@ -90,7 +90,9 @@ p { margin: 0 0 1em; }
 }
 .btn:hover { text-decoration: none; border-color: var(--accent); }
 .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.hero-phone { justify-self: center; width: min(280px, 70vw); }
+.hero-phone { justify-self: center; width: min(240px, 60vw); }
+@media (min-width: 860px) { .hero-phone { justify-self: end; } }
+.hero-phone img { width: 100%; height: auto; }
 .hero-phone img, .shot img {
   border-radius: 28px; border: 8px solid #1b1e24; box-shadow: var(--shadow); background: #000;
 }
@@ -140,23 +142,46 @@ tr:last-child td { border-bottom: 0; }
 .uuid { font-size: .78em; word-break: break-all; }
 
 /* Gallery */
-.gallery { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(160px, 240px)); justify-content: center; }
+.gallery { display: flex; flex-wrap: wrap; gap: 28px; justify-content: center; }
+.gallery .shot { flex: 0 1 220px; min-width: 0; }
 .shot { margin: 0; }
 .shot figcaption { margin-top: 14px; font-size: .92rem; color: var(--muted); }
 .shot figcaption strong { display: block; color: var(--text); }
 
 /* Video */
 .video-frame {
-  position: relative; aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden;
+  max-width: 820px; margin: 0 auto; border-radius: 16px; overflow: hidden;
   background: #0b0d11; border: 1px solid var(--border); box-shadow: var(--shadow);
 }
-.video-frame iframe, .video-frame video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.video-placeholder {
-  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 12px; color: #9aa3b2;
-  background: repeating-linear-gradient(45deg, #11141a 0 14px, #141821 14px 28px);
+.video-frame video { display: block; width: 100%; height: auto; }
+.video-caption { max-width: 820px; margin: 14px auto 40px; color: var(--muted); font-size: .95rem; }
+.video-caption strong { color: var(--text); margin-right: 6px; }
+
+/* Gesture screenshots */
+.gesture-gallery { margin-top: 36px; flex-wrap: nowrap; gap: 20px; }
+.gesture-gallery img { width: 100%; height: auto; }
+@media (max-width: 560px) {
+  .gesture-gallery { gap: 10px; }
+  .gesture-gallery img { border-width: 4px; border-radius: 14px; }
+  .gesture-gallery figcaption { font-size: .8rem; }
 }
-.video-placeholder p { margin: 0; font-weight: 600; }
+.shot figcaption code { font-size: .9em; }
+
+/* Hardware photos */
+.photo-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+.photo-grid .photo { flex: 0 1 240px; min-width: 0; }
+.photo { margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+.photo a { display: block; }
+.photo img { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; background: var(--bg-alt); transition: transform .25s ease; }
+.photo a:hover img { transform: scale(1.03); }
+.photo figcaption, .demo figcaption { padding: 12px 16px 16px; font-size: .92rem; color: var(--muted); }
+.photo figcaption strong, .demo figcaption strong { display: block; color: var(--text); }
+
+/* Demos */
+.demo-grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; align-items: stretch; }
+.demo-grid .demo { flex: 0 1 300px; min-width: 0; }
+.demo { margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+.demo video, .demo img { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: contain; background: #0b0d11; }
 
 /* Protocol */
 .two-col { display: grid; gap: 28px; }
@@ -174,3 +199,10 @@ tr:last-child td { border-bottom: 0; }
 /* Footer */
 .site-footer { border-top: 1px solid var(--border); padding: 32px 0; color: var(--muted); font-size: .9rem; }
 .site-footer p { margin: 0 0 4px; }
+
+/* Phones: app screenshots two per row */
+@media (max-width: 560px) {
+  .gallery { gap: 16px; }
+  .gallery .shot { flex-basis: calc(50% - 8px); }
+  .gallery .shot img { border-width: 5px; border-radius: 18px; }
+}

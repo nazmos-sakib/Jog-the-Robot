@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Jekyll build output for the docs/ site
+docs/_site/
+docs/.jekyll-cache/

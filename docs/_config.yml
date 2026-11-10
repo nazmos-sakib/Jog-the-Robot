@@ -8,24 +8,26 @@ description: >-
 author: Naz
 
 # Link shown in the header and footer. Change it to your repository URL.
-repo_url: https://github.com/YOUR-USERNAME/JogTheRobot
+repo_url: https://github.com/nazmos-sakib/Jog-the-Robot
 
-# ----- Robot video -----
-# Paste ONE of these and leave the other empty.
-#   youtube_embed: the embed URL, e.g. https://www.youtube.com/embed/dQw4w9WgXcQ
-#   file:          a video file committed under docs/, e.g. assets/video/robot-demo.mp4
-# While both are empty, the page shows a "video coming soon" placeholder.
+# Intro text above the two side-by-side videos in the Video section.
 video:
-  youtube_embed: ""
-  file: ""
-  caption: The igus arm jogged from the phone, first with the Jog buttons, then with Gesture Jog.
+  caption: Phone screen on the left, robot on the right. First touch Jog, then Gesture Jog.
 
-# The Gesture Jog screenshot shows the room it was taken in.
-# Set to true to show it on the page (docs/screenshots/gesture-jog.png must exist).
-show_gesture_screenshot: false
+# No theme: the site uses its own _layouts/default.html and assets/css/site.css.
+# The stylesheet is named site.css (not style.css) so a theme's style.scss can never overwrite it.
+theme: null
 
 markdown: kramdown
 exclude:
   - README.md
   - Gemfile
   - Gemfile.lock
+  # Media in screenshots/ that the page does not use. Excluding them keeps them out of the
+  # built site. gesture-jog.png shows a private room and must never be published.
+  - screenshots/gesture-jog.png
+  - screenshots/jog-screen-demo-2.mov
+  - screenshots/gerster-jog-demo-3-no-audio.mov
+  - screenshots/5x-robotic-arm-5.jpeg
+  - screenshots/5x-robotic-arm-5.jpg
+  - screenshots/jog-screen-demo-2.gif
